@@ -5,20 +5,34 @@
 #include<omp.h>
 #define A_val 4.0
 #define B_val 3.0
+const int s=32;
 template<int M,int K,int N>
-void matMul(float *A,float*B,float*C){
-
-    for(int m=0;m<M;m++){
-        for(int n=0;n<N;n++){
-            int x=0;
-            for(int k=0;k<K;k++){
-            
-              x+=A[m*K+k]*B[k*N+n];
+void matMul(float *A,float*B,float*C,int s){
+    for(int mm=0;mm<M;mm+=s){
+        for(int nn=0;nn<N;nn+=s){
+            for(int kk=0;kk<K;kk+=s){
+                for(int m=0;m<s;m++){
+                    for(int n=0;n<s;n++){
+                        for(int k=0;k<s;k++){
+                            C[(mm+m)*K+nn+n]+=A[(mm+m)*K+kk+k]*B[(kk+k)*N+n];
+                        }
+                    }
+                }
             }
-            C[m*K+n]=x;
-             
         }
     }
+
+    // for(int m=0;m<M;m++){
+    //     for(int n=0;n<N;n++){
+    //         int x=0;
+    //         for(int k=0;k<K;k++){
+            
+    //           x+=A[m*K+k]*B[k*N+n];
+    //         }
+    //         C[m*K+n]=x;
+             
+    //     }
+    // }
 }
 void InitVal(float *A,int val,int m,int n){
     for(int i=0;i<m;i++){
@@ -30,7 +44,7 @@ void InitVal(float *A,int val,int m,int n){
 void printMat(float *A,int m,int n){
     for(int i=0;i<m;i++){
         for(int j=0;j<n;j++){
-
+            std::cout<<A[i*n+j]<<" ";
         }
         std::cout<<"\n";
     }
@@ -43,10 +57,13 @@ int main(){
     InitVal(A,A_val,4096,4096);
     InitVal(B,B_val,4096,4096);
     InitVal(C,0.0,4096,4096);
+    for(int i=2;i<256;i=i*2){
     t1=omp_get_wtime();
-    matMul<4096,4096,4096>(A,B,C);
+    matMul<4096,4096,4096>(A,B,C,i);
     t2=omp_get_wtime();
-    std::cout<<"Time taken to execute:"<<(t2-t1)<<"s \n";
-    // printMat(C,100,100);
+    std::cout<<"Time taken to execute :"<<(t2-t1)<<"s \n";
+    // std::cout<<i<<" ";
+    }
+    // printMat(C,128,128);
     return 0;
 }
